@@ -1,0 +1,192 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+:root {
+  --primary: #212121;
+  --dark: #0077c0;
+  --light: #c7eeff;
+  --base: #fafafa;
+  --border: #9bbdd2;
+}
+
+#navbar {
+  background-color: var(--primary);
+  padding: 15px 20px;
+  color: var(--light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.navpop {
+  position: absolute;
+  right: 15px;
+  display: flex;
+  flex-direction: column;
+  bottom: -95px;
+  gap: 5px;
+  background-color: #0076c077;
+  padding: 10px;
+  border-radius: 5px;
+  backdrop-filter: blur(2px);
+}
+
+.navpop > button {
+  font-size: 16px;
+}
+
+body {
+  padding-top: 0;
+}
+
+body.navbar-overflow {
+  padding-top: 100px;
+}
+
+#logo {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.login-btn {
+  border: none;
+  padding: 8px 10px;
+  font-size: 18px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: var(--light);
+  color: var(--dark);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#pfp-btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+#pfp {
+  width: 40px;
+  height: 40px;
+  border-radius: 50px;
+}
+
+#web {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.herobody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+.hbody {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  overflow-y: scroll;
+}
+
+.con1 {
+  font-size: 32px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--primary);
+}
+
+.con2 {
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--primary);
+  max-width: 600px;
+  text-align: center;
+}
+
+.herocard {
+  width: 100%;
+  max-width: 700px;
+  min-width: 300px;
+  border-radius: 10px;
+}
+
+.logos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--primary);
+}
+
+.repos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.repocard {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 15px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background-color: #eefaff;
+}
+
+.herobg {
+  z-index: -999;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fit;
+}
+
+.reponame {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.repobtns {
+  display: flex;
+  gap: 10px;
+}
+
+.repobtn {
+  background-color: var(--light);
+  border-radius: 10px;
+  color: var(--dark);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  cursor: pointer;
+}
