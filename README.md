@@ -9,25 +9,23 @@ Visit: <a href="http://launchly.software">launchly.software</a>
 
 **Static Sites**<br>
 <a href="http://testreact.launchly.software">testreact.launchly.software</a><br>
-<a href="http://vschedule.launchly.software">vschedule.launchly.software</a>
-<a href="http://launchly.software">launchly.software</a>
+<a href="http://vschedule.launchly.software">vschedule.launchly.software</a><br>
+<a href="http://parkinsonpredictor.launchly.software/">parkinsonpredictor.launchly.software</a>
 
 **API's Deployed**<br>
 <a href="https://qvaylx65g8.execute-api.eu-north-1.amazonaws.com/">https://qvaylx65g8.execute-api.eu-north-1.amazonaws.com/</a>
 
-
 ## Routes
 
-| Route        | Description                                      |
-| ------------ | ------------------------------------------------ |
-| `/profile`   | View deployment details and environment status |
-| `/repos`     | Browse and manage connected GitHub repositories |
+| Route      | Description                                     |
+| ---------- | ----------------------------------------------- |
+| `/profile` | View deployment details and environment status  |
+| `/repos`   | Browse and manage connected GitHub repositories |
 
 ## Overview
 
 Launchly helps developers manage the complete deployment lifecycle — from code commits to live production.  
 It provides real-time build logs, deployment tracking, and error visibility through a clean, intuitive interface.
-
 
 ## Tech Stack
 
