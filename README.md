@@ -1,3 +1,5 @@
+> Not actively maintained due to AWS Free Tier limitations. Currently being redeveloped using free and open-source alternatives.
+
 <img src="./assets/launchly_banner.png" style="border-radius:5px">
 
 **Launchly** is a cloud-based platform that automates project deployment, testing, and monitoring.  
