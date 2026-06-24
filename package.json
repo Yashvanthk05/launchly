@@ -5,7 +5,8 @@
     "private": true,
     "scripts": {
         "dev": "bun --watch server.ts",
-        "worker": "bun run worker.ts"
+        "worker": "bun run worker.ts",
+        "recover": "bun run scripts/recovery-worker.ts"
     },
     "devDependencies": {
         "@types/bun": "latest",

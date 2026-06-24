@@ -79,7 +79,7 @@ const processor = async (job: Job<DeployJobData>) => {
         await updateDeployment({ status: 'RUNNING', containerName, containerPort: freePort, imageTag, logsPath });
 
         await execasync(`
-        docker run -d -p ${freePort}:3000 --name ${containerName} ${imageTag} >> "${logsPath}" 2>&1
+        docker run -d -p ${freePort}:3000 --name ${containerName} --label deployx.managed=true ${imageTag} >> "${logsPath}" 2>&1
         `);
 
         logger.info(`Registering ${fullDomain} in router...`);

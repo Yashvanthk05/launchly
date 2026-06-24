@@ -1,0 +1,17 @@
+[Unit]
+Description=DeployX Recovery Worker — Restore all running deployments after reboot
+After=network-online.target docker.service redis.service
+Wants=network-online.target docker.service redis.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=root
+WorkingDirectory=/media/yashix/New Volume/DeployX
+Environment=PATH=/home/yashix/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/home/yashix/.bun/bin/bun run scripts/recovery-worker.ts
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
