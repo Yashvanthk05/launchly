@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@font-face {
+    font-family: 'Anthropic';
+    src: url('./assets/Anthropic-Serif.ttf') format('truetype');
+    font-display: swap;
+}
+
+
+body {
+    background-color: #000000;
+    color: white;
+    min-height: 100vh;
+    font-family: 'Anthropic', sans-serif;
+}
