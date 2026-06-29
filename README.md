@@ -11,8 +11,8 @@ Launchly is a lightweight deployment engine inspired by Vercel and Railway. It a
 | Layer      | Technology                                |
 | ---------- | ----------------------------------------- |
 | Runtime    | Bun + TypeScript                          |
-| Backend    | Express 5                                 |
-| Frontend   | React 19, Vite, Tailwind CSS 4            |
+| Backend    | Express                                   |
+| Frontend   | React, Vite, Tailwind CSS                 |
 | Database   | PostgreSQL via Prisma (Supabase)          |
 | Queue      | BullMQ + Redis                            |
 | Auth       | GitHub OAuth (httpOnly cookies)           |
@@ -133,13 +133,13 @@ Your app is then live at `{subdomain}.{ROOT_DOMAIN}`.
 
 ## Supported Frameworks
 
-| Framework   | Base Image        | Exposed Port |
-| ----------- | ----------------- | ------------ |
-| Express     | `node:18-alpine`  | 3000         |
-| Next.js     | `node:18-alpine`  | 3000         |
-| React (CRA) | `node:18-alpine`  | 3000         |
-| Vite        | `node:18-alpine`  | 3000         |
-| Python      | `python:3.9-slim` | 3000         |
+| Framework | Base Image        | Exposed Port |
+| --------- | ----------------- | ------------ |
+| Express   | `node:18-alpine`  | 3000         |
+| Next.js   | `node:18-alpine`  | 3000         |
+| React     | `node:18-alpine`  | 3000         |
+| Vite      | `node:18-alpine`  | 3000         |
+| Python    | `python:3.9-slim` | 3000         |
 
 Each template supports custom `BUILD_COMMAND` and `START_COMMAND` build args.
 
