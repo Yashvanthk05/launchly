@@ -1,4 +1,4 @@
-# 🚀 Launchly
+# Launchly
 
 **Self-hosted PaaS - deploy apps from GitHub with one click.**
 
