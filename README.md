@@ -4,7 +4,6 @@
 
 Launchly is a lightweight deployment engine inspired by Vercel and Railway. It authenticates via GitHub OAuth, builds Docker images from framework-specific templates, and routes traffic through a reverse proxy - all driven by an async job queue.
 
----
 
 ## Tech Stack
 
@@ -19,7 +18,6 @@ Launchly is a lightweight deployment engine inspired by Vercel and Railway. It a
 | Proxy      | `http-proxy` - wildcard subdomain routing |
 | Containers | Docker                                    |
 
----
 
 ## System Design
 
@@ -75,8 +73,6 @@ flowchart TD
     Proxy -->|"forward traffic"| Docker
 ```
 
----
-
 ## How Deployments Work
 
 When you trigger a deploy, the BullMQ worker runs these steps in order:
@@ -90,7 +86,6 @@ When you trigger a deploy, the BullMQ worker runs these steps in order:
 
 Your app is then live at `{subdomain}.{ROOT_DOMAIN}`.
 
----
 
 ## API Reference
 
@@ -128,8 +123,6 @@ Your app is then live at `{subdomain}.{ROOT_DOMAIN}`.
     "rootDirectory": ""
 }
 ```
-
----
 
 ## Supported Frameworks
 
