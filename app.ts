@@ -9,12 +9,33 @@ import httpProxy from 'http-proxy';
 import { getDomain } from './utils/domainStore';
 import { logger } from './config/logger';
 import path from 'path';
+import net from 'node:net';
 
 const app = express();
 
 const proxy = httpProxy.createProxyServer({
     ws: true,
+    changeOrigin: true,
 });
+
+const badGatewayPage = path.join(process.cwd(), 'templates/badgateway.html');
+
+const isPortReachable = async (port: number) => {
+    return new Promise<boolean>(resolve => {
+        const socket = net.createConnection({ host: '127.0.0.1', port });
+
+        const finish = (reachable: boolean) => {
+            socket.removeAllListeners();
+            socket.destroy();
+            resolve(reachable);
+        };
+
+        socket.setTimeout(500);
+        socket.once('connect', () => finish(true));
+        socket.once('timeout', () => finish(false));
+        socket.once('error', () => finish(false));
+    });
+};
 
 proxy.on('error', (err, req, res) => {
     logger.error({ err, host: req.headers.host }, 'Proxy Error');
@@ -31,6 +52,12 @@ app.use(async (req, res, next) => {
         const hostname = req.headers.host || '';
         const port = await getDomain(hostname.split(':')[0] || '');
         if (port) {
+            const reachable = await isPortReachable(port);
+            if (!reachable) {
+                logger.warn({ host: hostname, port }, 'Stale domain mapping');
+                return res.status(502).sendFile(badGatewayPage);
+            }
+
             return proxy.web(req, res, { target: `http://localhost:${port}` });
         }
         next();

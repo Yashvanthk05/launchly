@@ -14,9 +14,13 @@ const Deploy = () => {
         reponame: repo?.name.toLowerCase(),
         repourl: repo?.html_url,
         domain: repo?.name.toLowerCase(),
-        framework: '',
+        framework: 'custom',
         buildCommand: '',
         startCommand: '',
+        baseImage: '',
+        runCommand: '',
+        copyCommand: '',
+        exposeCommand: '',
         rootDir: '',
     });
 
@@ -25,6 +29,9 @@ const Deploy = () => {
     const handleDeploy = async () => {
         setDeploying(true);
         try {
+            if (!deploy.framework) {
+                throw new Error('Select a framework before deploying.');
+            }
             const res = await axios.post('/api/deployment/create', deploy);
             if (res.status === 202) {
                 navigate('/deployments');
@@ -60,7 +67,7 @@ const Deploy = () => {
                             className="flex-1 w-0 bg-transparent px-4 py-3 outline-none text-white placeholder-neutral-600"
                         />
                         <span className="px-4 text-neutral-500 font-mono bg-neutral-900 border-l border-neutral-800 py-3 select-none">
-                            .deployx.me
+                            .launchly.software
                         </span>
                     </div>
                 </div>
@@ -74,7 +81,7 @@ const Deploy = () => {
                         value={deploy.framework}
                         onChange={e => setDeploy({ ...deploy, framework: e.target.value })}
                     >
-                        <option value="" selected disabled>
+                        <option value="" disabled>
                             Select a framework
                         </option>
                         <option value="next">Next.js</option>
@@ -82,53 +89,146 @@ const Deploy = () => {
                         <option value="vite">Vite + React</option>
                         <option value="express">Express</option>
                         <option value="python">Python</option>
+                        <option value="custom">Custom Dockerfile</option>
                     </select>
+                        <p className="mt-2 text-xs text-neutral-500">
+                            Choose Custom Dockerfile to enter base image, COPY, RUN, EXPOSE, and CMD values directly.
+                        </p>
                 </div>
 
-                <div className="pt-4 border-t border-neutral-800 space-y-4">
-                    <h3 className="text-lg font-medium">Build and Output Settings</h3>
+                {deploy.framework === 'custom' ? (
+                    <div className="pt-4 border-t border-neutral-800 space-y-4">
+                        <h3 className="text-lg font-medium">Custom Dockerfile Settings</h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm text-neutral-400 mb-1">
-                                Build Command
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="npm run build"
-                                value={deploy.buildCommand}
-                                onChange={e =>
-                                    setDeploy({ ...deploy, buildCommand: e.target.value })
-                                }
-                                className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 outline-none"
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm text-neutral-400 mb-1">
+                                    Base Image
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="node:18-alpine"
+                                    value={deploy.baseImage}
+                                    onChange={e =>
+                                        setDeploy({ ...deploy, baseImage: e.target.value })
+                                    }
+                                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm text-neutral-400 mb-1">
+                                    EXPOSE Port
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="3000"
+                                    value={deploy.exposeCommand}
+                                    onChange={e =>
+                                        setDeploy({ ...deploy, exposeCommand: e.target.value })
+                                    }
+                                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm text-neutral-400 mb-1">
+                                    RUN Command
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="npm install"
+                                    value={deploy.runCommand}
+                                    onChange={e =>
+                                        setDeploy({ ...deploy, runCommand: e.target.value })
+                                    }
+                                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 outline-none"
+                                />
+                                <p className="mt-1 text-xs text-neutral-500">
+                                    Leave blank if the image does not need a build step.
+                                </p>
+                            </div>
+                            <div>
+                                <label className="block text-sm text-neutral-400 mb-1">
+                                    COPY Source and Destination
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="package*.json ./"
+                                    value={deploy.copyCommand}
+                                    onChange={e =>
+                                        setDeploy({ ...deploy, copyCommand: e.target.value })
+                                    }
+                                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 outline-none"
+                                />
+                                <p className="mt-1 text-xs text-neutral-500">
+                                    Provide the COPY source and destination, separated by a space.
+                                </p>
+                            </div>
+                            <div className="md:col-span-2">
+                                <label className="block text-sm text-neutral-400 mb-1">
+                                    Start Command
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder='["npm", "start"]'
+                                    value={deploy.startCommand}
+                                    onChange={e =>
+                                        setDeploy({ ...deploy, startCommand: e.target.value })
+                                    }
+                                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 outline-none"
+                                />
+                                <p className="mt-1 text-xs text-neutral-500">
+                                    Use JSON array syntax for CMD when you want an exec-form entrypoint.
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-sm text-neutral-400 mb-1">
-                                Start Command
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="npm start"
-                                value={deploy.startCommand}
-                                onChange={e =>
-                                    setDeploy({ ...deploy, startCommand: e.target.value })
-                                }
-                                className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 outline-none"
-                            />
+                    </div>
+                ) : (
+                    <div className="pt-4 border-t border-neutral-800 space-y-4">
+                        <h3 className="text-lg font-medium">Build and Output Settings</h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm text-neutral-400 mb-1">
+                                    Build Command
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="npm run build"
+                                    value={deploy.buildCommand}
+                                    onChange={e =>
+                                        setDeploy({ ...deploy, buildCommand: e.target.value })
+                                    }
+                                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm text-neutral-400 mb-1">
+                                    Start Command
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="npm start"
+                                    value={deploy.startCommand}
+                                    onChange={e =>
+                                        setDeploy({ ...deploy, startCommand: e.target.value })
+                                    }
+                                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 outline-none"
+                                />
+                            </div>
                         </div>
-                        <div className="md:col-span-2">
-                            <label className="block text-sm text-neutral-400 mb-1">
-                                Root Directory
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="./"
-                                value={deploy.rootDir}
-                                onChange={e => setDeploy({ ...deploy, rootDir: e.target.value })}
-                                className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 outline-none"
-                            />
-                        </div>
+                    </div>
+                )}
+
+                <div className="pt-4 border-t border-neutral-800 space-y-4">
+                    <div className="md:col-span-2">
+                        <label className="block text-sm text-neutral-400 mb-1">Root Directory</label>
+                        <input
+                            type="text"
+                            placeholder="./"
+                            value={deploy.rootDir}
+                            onChange={e => setDeploy({ ...deploy, rootDir: e.target.value })}
+                            className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-2 outline-none"
+                        />
                     </div>
                 </div>
 

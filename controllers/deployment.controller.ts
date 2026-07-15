@@ -5,8 +5,29 @@ import { prisma } from '../utils/db';
 import axios from 'axios';
 
 export const createDeployment = async (req: Request, res: Response) => {
-    const { userid, reponame, repourl, framework, domain, startCommand, buildCommand, rootDir } =
-        req.body;
+    const {
+        userid,
+        reponame,
+        repourl,
+        framework,
+        domain,
+        startCommand,
+        buildCommand,
+        rootDir,
+        baseImage,
+        runCommand,
+        copyCommand,
+        exposeCommand,
+    } = req.body;
+
+    if (!framework) {
+        return res.status(HttpStatusCode.BadRequest).json({
+            status: 'error',
+            message: 'Framework is required. Select Custom Dockerfile for custom images.',
+        });
+    }
+
+    const effectiveBuildCommand = framework === 'custom' ? runCommand || buildCommand : buildCommand;
 
     let user = await prisma.user.findUnique({ where: { githubUsername: userid } });
     if (!user) {
@@ -35,13 +56,27 @@ export const createDeployment = async (req: Request, res: Response) => {
 
     const project = await prisma.project.upsert({
         where: { subDomain: domain },
-        update: { name: reponame, repoUrl: repourl, framework, buildCommand, startCommand },
+        update: {
+            name: reponame,
+            repoUrl: repourl,
+            framework,
+            buildCommand: effectiveBuildCommand,
+            startCommand,
+            baseImage,
+            runCommand,
+            copyCommand,
+            exposeCommand,
+        },
         create: {
             name: reponame,
             repoUrl: repourl,
             framework,
-            buildCommand,
+            buildCommand: effectiveBuildCommand,
             startCommand,
+            baseImage,
+            runCommand,
+            copyCommand,
+            exposeCommand,
             subDomain: domain,
             userId: user.id,
         },
@@ -56,7 +91,11 @@ export const createDeployment = async (req: Request, res: Response) => {
             framework,
             domain,
             startCommand,
-            buildCommand,
+            buildCommand: effectiveBuildCommand,
+            baseImage,
+            runCommand,
+            copyCommand,
+            exposeCommand,
             rootDir,
         },
     });
@@ -70,6 +109,10 @@ export const createDeployment = async (req: Request, res: Response) => {
         startCommand,
         buildCommand,
         rootDir,
+        baseImage,
+        runCommand,
+        copyCommand,
+        exposeCommand,
         deploymentId: deployment.id,
     });
 

@@ -22,12 +22,29 @@ interface DeployJobData {
     startCommand: string;
     buildCommand: string;
     rootDir: string;
+    baseImage?: string;
+    runCommand?: string;
+    copyCommand?: string;
+    exposeCommand?: string;
     deploymentId?: string;
 }
 
 const processor = async (job: Job<DeployJobData>) => {
-    const { userid, reponame, repourl, framework, domain, buildCommand, startCommand, rootDir, deploymentId } =
-        job.data;
+    const {
+        userid,
+        reponame,
+        repourl,
+        framework,
+        domain,
+        buildCommand,
+        startCommand,
+        rootDir,
+        baseImage,
+        runCommand,
+        copyCommand,
+        exposeCommand,
+        deploymentId,
+    } = job.data;
 
     logger.info(
         { userid, repourl, framework, domain, buildCommand, startCommand, rootDir },
@@ -60,7 +77,17 @@ const processor = async (job: Job<DeployJobData>) => {
 
         logger.info('step2: building repo');
 
-        await generateDockerfile(framework, buildpath, buildCommand, startCommand, rootDir);
+        await generateDockerfile({
+            framework,
+            projectPath: buildpath,
+            buildCommand,
+            startCommand,
+            rootDir,
+            baseImage,
+            runCommand,
+            copyCommand,
+            exposeCommand,
+        });
 
         const imageTag = `${userid}:${reponame}`;
 
@@ -69,6 +96,7 @@ const processor = async (job: Job<DeployJobData>) => {
         await job.updateProgress(60);
 
         const containerName = `${reponame}-${job.id}`;
+        const containerPort = Number.parseInt(exposeCommand || '3000', 10) || 3000;
 
         const freePort = await getFreePort();
 
@@ -78,11 +106,7 @@ const processor = async (job: Job<DeployJobData>) => {
 
         await updateDeployment({ status: 'RUNNING', containerName, containerPort: freePort, imageTag, logsPath });
 
-        await execasync(`
-        docker run -d -p ${freePort}:3000 --name ${containerName} ${imageTag} >> "${logsPath}" 2>&1
-        `);
-
-        logger.info(`Registering ${fullDomain} in router...`);
+        await execasync(`docker run -d -p ${freePort}:${containerPort} --name ${containerName} ${imageTag} >> "${logsPath}" 2>&1`);
 
         const dep = deploymentId
             ? await prisma.deployment.findUnique({ where: { id: deploymentId }, select: { projectId: true } })
