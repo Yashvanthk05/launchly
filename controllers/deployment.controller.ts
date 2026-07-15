@@ -5,29 +5,14 @@ import { prisma } from '../utils/db';
 import axios from 'axios';
 
 export const createDeployment = async (req: Request, res: Response) => {
-    const {
-        userid,
-        reponame,
-        repourl,
-        framework,
-        domain,
-        startCommand,
-        buildCommand,
-        rootDir,
-        baseImage,
-        runCommand,
-        copyCommand,
-        exposeCommand,
-    } = req.body;
+    const { userid, reponame, repourl, domain, dockerfileContent } = req.body;
 
-    if (!framework) {
+    if (!dockerfileContent?.trim()) {
         return res.status(HttpStatusCode.BadRequest).json({
             status: 'error',
-            message: 'Framework is required. Select Custom Dockerfile for custom images.',
+            message: 'Dockerfile content is required.',
         });
     }
-
-    const effectiveBuildCommand = framework === 'custom' ? runCommand || buildCommand : buildCommand;
 
     let user = await prisma.user.findUnique({ where: { githubUsername: userid } });
     if (!user) {
@@ -56,30 +41,8 @@ export const createDeployment = async (req: Request, res: Response) => {
 
     const project = await prisma.project.upsert({
         where: { subDomain: domain },
-        update: {
-            name: reponame,
-            repoUrl: repourl,
-            framework,
-            buildCommand: effectiveBuildCommand,
-            startCommand,
-            baseImage,
-            runCommand,
-            copyCommand,
-            exposeCommand,
-        },
-        create: {
-            name: reponame,
-            repoUrl: repourl,
-            framework,
-            buildCommand: effectiveBuildCommand,
-            startCommand,
-            baseImage,
-            runCommand,
-            copyCommand,
-            exposeCommand,
-            subDomain: domain,
-            userId: user.id,
-        },
+        update: { name: reponame, repoUrl: repourl, subDomain: domain, userId: user.id },
+        create: { name: reponame, repoUrl: repourl, subDomain: domain, userId: user.id },
     });
 
     const deployment = await prisma.deployment.create({
@@ -88,15 +51,7 @@ export const createDeployment = async (req: Request, res: Response) => {
             status: 'PENDING',
             repoUrl: repourl,
             repoName: reponame,
-            framework,
             domain,
-            startCommand,
-            buildCommand: effectiveBuildCommand,
-            baseImage,
-            runCommand,
-            copyCommand,
-            exposeCommand,
-            rootDir,
         },
     });
 
@@ -104,15 +59,8 @@ export const createDeployment = async (req: Request, res: Response) => {
         userid,
         reponame,
         repourl,
-        framework,
         domain,
-        startCommand,
-        buildCommand,
-        rootDir,
-        baseImage,
-        runCommand,
-        copyCommand,
-        exposeCommand,
+        dockerfileContent,
         deploymentId: deployment.id,
     });
 
@@ -145,7 +93,7 @@ export const getUserDeployments = async (req: Request, res: Response) => {
         let user = await prisma.user.findFirst({
             where: {
                 OR: [{ githubUsername: login }, { email: userEmail }],
-            },  
+            },
         });
 
         if (user) {

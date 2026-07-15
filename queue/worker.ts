@@ -6,7 +6,7 @@ import path from 'node:path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { getFreePort } from '../utils/port';
-import { generateDockerfile } from '../utils/docker';
+import { writeDockerfile } from '../utils/docker';
 import fs from 'node:fs/promises';
 import { setDomain } from '../utils/domainStore';
 import { prisma } from '../utils/db';
@@ -17,44 +17,20 @@ interface DeployJobData {
     userid: string;
     repourl: string;
     reponame: string;
-    framework: string;
     domain: string;
-    startCommand: string;
-    buildCommand: string;
-    rootDir: string;
-    baseImage?: string;
-    runCommand?: string;
-    copyCommand?: string;
-    exposeCommand?: string;
+    dockerfileContent: string;
     deploymentId?: string;
 }
 
 const processor = async (job: Job<DeployJobData>) => {
-    const {
-        userid,
-        reponame,
-        repourl,
-        framework,
-        domain,
-        buildCommand,
-        startCommand,
-        rootDir,
-        baseImage,
-        runCommand,
-        copyCommand,
-        exposeCommand,
-        deploymentId,
-    } = job.data;
+    const { userid, reponame, repourl, domain, dockerfileContent, deploymentId } = job.data;
 
-    logger.info(
-        { userid, repourl, framework, domain, buildCommand, startCommand, rootDir },
-        'deploy worker started'
-    );
+    logger.info({ userid, repourl, domain }, 'deploy worker started');
 
     const projectpath = path.join('./tmp/deployx/', `${userid}/${reponame}`);
-    const buildpath = path.join(projectpath, rootDir);
-    const logsPath = `${buildpath}/logs.txt`;
-    const fullDomain = `${domain}.launchly.software`;
+    const fullDomain = domain;
+    const exposedPortMatch = dockerfileContent.match(/^\s*EXPOSE\s+(\d+)/im);
+    const containerPort = Number.parseInt(exposedPortMatch?.[1] || '3000', 10) || 3000;
 
     const updateDeployment = (data: Record<string, unknown>) => {
         if (deploymentId) {
@@ -75,38 +51,26 @@ const processor = async (job: Job<DeployJobData>) => {
         await job.updateProgress(20);
         await updateDeployment({ status: 'BUILDING' });
 
-        logger.info('step2: building repo');
+        logger.info('step2: building image');
 
-        await generateDockerfile({
-            framework,
-            projectPath: buildpath,
-            buildCommand,
-            startCommand,
-            rootDir,
-            baseImage,
-            runCommand,
-            copyCommand,
-            exposeCommand,
-        });
+        await writeDockerfile(projectpath, dockerfileContent);
 
         const imageTag = `${userid}:${reponame}`;
 
-        await execasync(`docker build -t ${imageTag} ${buildpath} >> "${logsPath}" 2>&1`);
+        await execasync(`docker build -t ${imageTag} ${projectpath} >> "${projectpath}/logs.txt" 2>&1`);
 
         await job.updateProgress(60);
 
         const containerName = `${reponame}-${job.id}`;
-        const containerPort = Number.parseInt(exposeCommand || '3000', 10) || 3000;
-
         const freePort = await getFreePort();
 
         try {
             await execasync(`docker rm -f ${containerName}`);
         } catch (_e) {}
 
-        await updateDeployment({ status: 'RUNNING', containerName, containerPort: freePort, imageTag, logsPath });
+        await updateDeployment({ status: 'RUNNING', containerName, containerPort: freePort, imageTag });
 
-        await execasync(`docker run -d -p ${freePort}:${containerPort} --name ${containerName} ${imageTag} >> "${logsPath}" 2>&1`);
+        await execasync(`docker run -d -p ${freePort}:${containerPort} --name ${containerName} ${imageTag} >> "${projectpath}/logs.txt" 2>&1`);
 
         const dep = deploymentId
             ? await prisma.deployment.findUnique({ where: { id: deploymentId }, select: { projectId: true } })

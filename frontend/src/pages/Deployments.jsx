@@ -98,7 +98,6 @@ const Deployments = () => {
                                                         {dep.domain}.launchly.software
                                                     </a>
                                                 )}
-                                                <span>{dep.framework}</span>
                                                 {dep.containerPort && (
                                                     <span>Port {dep.containerPort}</span>
                                                 )}

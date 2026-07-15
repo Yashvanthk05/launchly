@@ -49,8 +49,9 @@ proxy.on('error', (err, req, res) => {
 
 app.use(async (req, res, next) => {
     try {
-        const hostname = req.headers.host || '';
-        const port = await getDomain(hostname.split(':')[0] || '');
+        const hostname = (req.headers.host || '').split(':')[0];
+        const subdomain = hostname.split('.')[0];
+        const port = await getDomain(subdomain);
         if (port) {
             const reachable = await isPortReachable(port);
             if (!reachable) {
