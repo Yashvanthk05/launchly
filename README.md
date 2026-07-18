@@ -2,7 +2,7 @@
 
 **Self-hosted PaaS - deploy apps from GitHub with one click.**
 
-Launchly is a lightweight deployment engine inspired by Vercel and Railway. It authenticates via GitHub OAuth, builds Docker images from framework-specific templates, and routes traffic through a reverse proxy - all driven by an async job queue.
+Launchly is a lightweight deployment engine inspired by Vercel and Railway. It authenticates via GitHub OAuth, builds Docker images from your custom Dockerfile, and routes traffic through a reverse proxy - all driven by an async job queue.
 
 
 ## Tech Stack
@@ -78,13 +78,34 @@ flowchart TD
 When you trigger a deploy, the BullMQ worker runs these steps in order:
 
 1. **Clone** - pulls your GitHub repo into a temp directory
-2. **Dockerfile** - injects your build/start commands into a framework template
-3. **Build** - runs `docker build`
-4. **Run** - finds a free port, starts the container
-5. **Map** - writes `subdomain.domain - port` to `domain-map.json`
-6. **Cleanup** - removes the cloned source (container keeps running)
+2. **Build** - runs `docker build` using the Dockerfile from your repo (or custom override)
+3. **Run** - finds a free port, starts the container
+4. **Map** - writes `subdomain.port` to `domain-map.json`
+5. **Cleanup** - removes the cloned source (container keeps running)
 
 Your app is then live at `{subdomain}.{ROOT_DOMAIN}`.
+
+
+## Custom Dockerfile
+
+Each deployment uses a **Dockerfile from your repository**. You can:
+
+- **Use a Dockerfile** in your repo root
+- **Override it** via the deployment form if needed
+
+Your Dockerfile should expose a port (typically `3000`) that your application listens on. Launchly will find a free host port and forward traffic to it.
+
+**Simple example:**
+
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY . .
+RUN npm install
+RUN npm run build
+EXPOSE 3000
+CMD ["npm", "start"]
+```
 
 
 ## API Reference
@@ -116,25 +137,14 @@ Your app is then live at `{subdomain}.{ROOT_DOMAIN}`.
 ```json
 {
     "repoUrl": "https://github.com/user/repo",
-    "framework": "vite",
     "subDomain": "my-project",
-    "buildCommand": "npm run build",
-    "startCommand": "npx serve dist",
-    "rootDirectory": ""
+    "rootDirectory": "",
+    "dockerfile": ""
 }
 ```
 
-## Supported Frameworks
+The `dockerfile` field is optional—if empty, Launchly uses the Dockerfile in your repo root.
 
-| Framework | Base Image        | Exposed Port |
-| --------- | ----------------- | ------------ |
-| Express   | `node:18-alpine`  | 3000         |
-| Next.js   | `node:18-alpine`  | 3000         |
-| React     | `node:18-alpine`  | 3000         |
-| Vite      | `node:18-alpine`  | 3000         |
-| Python    | `python:3.9-slim` | 3000         |
-
-Each template supports custom `BUILD_COMMAND` and `START_COMMAND` build args.
 
 ## License
 
